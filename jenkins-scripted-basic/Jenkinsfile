@@ -1,0 +1,18 @@
+stage('Build') {
+    parallel linux: {
+        node('linux') {
+            checkout scm
+            try {
+                sh 'make'
+            }
+            finally {
+                junit '**/target/*.xml'
+            }
+        }
+    },
+    windows: {
+        node('windows') {
+            /* .. snip .. */
+        }
+    }
+}
