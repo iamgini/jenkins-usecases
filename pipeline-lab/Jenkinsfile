@@ -1,0 +1,169 @@
+pipeline {
+  agent none
+  stages {
+    stage('Fluffy Build') {
+      parallel {
+        stage('Build Java 7') {
+          agent {
+            node {
+              label 'java7'
+            }
+
+          }
+          steps {
+            sh './jenkins/build.sh'
+            archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
+            stash(name: 'Java 7', includes: 'target/**')
+          }
+        }
+
+        stage('Build Java 8') {
+          agent {
+            node {
+              label 'java8'
+            }
+
+          }
+          steps {
+            sh './jenkins/build.sh'
+            stash(name: 'Java 8', includes: 'target/**')
+          }
+        }
+
+      }
+    }
+
+    stage('Fluffy Test') {
+      parallel {
+        stage('Backend7') {
+          agent {
+            node {
+              label 'java7'
+            }
+
+          }
+          steps {
+            unstash 'Java 7'
+            sh './jenkins/test-backend.sh'
+            junit 'target/surefire-reports/**/TEST*.xml'
+          }
+        }
+
+        stage('Frontend7') {
+          agent {
+            node {
+              label 'java7'
+            }
+
+          }
+          steps {
+            unstash 'Java 7'
+            sh './jenkins/test-frontend.sh'
+            junit 'target/test-results/**/TEST*.xml'
+          }
+        }
+
+        stage('Performance7') {
+          agent {
+            node {
+              label 'java7'
+            }
+
+          }
+          steps {
+            unstash 'Java 7'
+            sh './jenkins/test-performance.sh'
+          }
+        }
+
+        stage('Static7') {
+          agent {
+            node {
+              label 'java7'
+            }
+
+          }
+          steps {
+            unstash 'Java 7'
+            sh './jenkins/test-static.sh'
+          }
+        }
+
+        stage('Backend8') {
+          agent {
+            node {
+              label 'java8'
+            }
+
+          }
+          steps {
+            unstash 'Java 8'
+            sh './jenkins/test-backend.sh'
+            junit 'target/surefire-reports/**/TEST*.xml'
+          }
+        }
+
+        stage('Frontend8') {
+          agent {
+            node {
+              label 'java8'
+            }
+
+          }
+          steps {
+            unstash 'Java 8'
+            sh './jenkins/test-frontend.sh'
+            junit 'target/test-results/**/TEST*.xml'
+          }
+        }
+
+        stage('Performance8') {
+          agent {
+            node {
+              label 'java8'
+            }
+
+          }
+          steps {
+            unstash 'Java 8'
+            sh './jenkins/test-performance.sh'
+          }
+        }
+
+        stage('Static8') {
+          agent {
+            node {
+              label 'java8'
+            }
+
+          }
+          steps {
+            unstash 'Java 8'
+            sh './jenkins/test-static.sh'
+          }
+        }
+
+      }
+    }
+
+    stage('Confirm Deploy') {
+      steps {
+        input(message: 'Confirm deploy to staging ?', ok: 'YES')
+      }
+    }
+
+    stage('Fluffy Deploy') {
+      agent {
+        node {
+          label 'java7'
+        }
+
+      }
+      steps {
+        unstash 'Java 8'
+        sh './jenkins/deploy.sh staging'
+      }
+    }
+
+  }
+}
