@@ -1,0 +1,6 @@
+---
+- name: Deploy App to Servers
+  hosts: localhost
+  tasks:
+    - name: Check Host
+      shell: "uptime;hostname"
