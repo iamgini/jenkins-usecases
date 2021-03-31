@@ -1,0 +1,50 @@
+pipeline {
+  agent any
+  stages {
+    stage('Clone Repo') {
+      steps {
+        git 'http://localhost:5000/gitserver/butler/pipeline-demo'
+      }
+    }
+
+    stage('App Build') {
+      steps {
+        sh '''git clean -xfd
+env
+mvn -B -DskipTests clean package'''
+        archiveArtifacts(artifacts: 'target/*.jar', fingerprint: true)
+        sh 'echo "I am a ${BUZZ_NAME}"'
+      }
+    }
+
+    stage('Push to Nexus Repo') {
+      steps {
+        sh 'echo "Pushing to Nexus Repo"'
+      }
+    }
+
+    stage('Deploy App to Server') {
+      steps {
+        sh 'pwd'
+        sh 'ls -l'
+        sh 'ansible --version'
+        ansiblePlaybook(playbook: 'deploy-app.yaml', disableHostKeyChecking: true, inventory: 'localhost')
+      }
+    }
+
+    stage('Test') {
+      steps {
+        sh './jenkins/test-all.sh'
+      }
+    }
+
+  }
+  environment {
+    BUZZ_NAME = 'Worker Bee'
+    NEXUS_VERSION = 'nexus3'
+    NEXUS_PROTOCOL = 'http'
+    NEXUS_URL = 'localhost:8081'
+    NEXUS_REPOSITORY = 'maven-repo'
+    NEXUS_CREDENTIAL_ID = 'nexus-jenkins-user'
+  }
+}

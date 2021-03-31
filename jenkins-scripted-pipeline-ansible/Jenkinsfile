@@ -1,0 +1,45 @@
+
+node {  
+    //withEnv(["ENV2=Value",
+    //"ENV2=Value",
+    //"ENV3=Value"]){
+ 
+    echo env.LT_USERNAME
+    echo env.LT_ACCESS_KEY 
+    stage('Build') { 
+        // 
+    }
+    stage('Test') { 
+        // 
+    }
+    stage('Deploy') { 
+        // 
+    }
+}
+
+// Steps
+// Clone repo
+// Build
+// push to nexus
+// Deploy using ansible
+// restart the instance
+// move to staging of app server
+
+stage('Build') {
+    parallel linux: {
+        node('linux') {
+            checkout scm
+            try {
+                sh 'make'
+            }
+            finally {
+                junit '**/target/*.xml'
+            }
+        }
+    },
+    windows: {
+        node('windows') {
+            /* .. snip .. */
+        }
+    }
+}
