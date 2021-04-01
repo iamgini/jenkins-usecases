@@ -20,6 +20,7 @@ mvn -B -DskipTests clean package'''
     stage('Push to Nexus Repo') {
       steps {
         sh 'echo "Pushing to Nexus Repo"'
+        nexusArtifactUploader(nexusVersion: 'nexus3', protocol: 'http', nexusUrl: 'localhost:8081', repository: 'maven-repo', version: '1.0', credentialsId: 'nexus-jenkins-user', groupId: 'repository')
       }
     }
 
